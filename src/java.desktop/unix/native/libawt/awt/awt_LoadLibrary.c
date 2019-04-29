@@ -22,6 +22,11 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
+/*
+ * ===========================================================================
+ * (c) Copyright IBM Corp. 2019, 2019 All Rights Reserved.
+ * ===========================================================================
+ */
 
 #include <stdio.h>
 #include <dlfcn.h>
@@ -90,12 +95,12 @@ JNIEXPORT jboolean JNICALL AWTIsHeadless() {
  */
 
 #ifdef MACOSX
-  #define LWAWT_PATH "/libawt_lwawt.dylib"
+  #define LWAWT_PATH "libawt_lwawt.dylib"
   #define DEFAULT_PATH LWAWT_PATH
 #else
-  #define XAWT_PATH "/libawt_xawt.so"
+  #define XAWT_PATH "libawt_xawt.so"
   #define DEFAULT_PATH XAWT_PATH
-  #define HEADLESS_PATH "/libawt_headless.so"
+  #define HEADLESS_PATH "libawt_headless.so"
 #endif
 
 jint
@@ -120,10 +125,24 @@ AWT_OnLoad(JavaVM *vm, void *reserved)
     jvm = vm;
 
     /* Get address of this library and the directory containing it. */
-    dladdr((void *)AWT_OnLoad, &dlinfo);
-    realpath((char *)dlinfo.dli_fname, buf);
-    len = strlen(buf);
+    if (0 == dladdr((void *)AWT_OnLoad, &dlinfo)) {
+        (*env)->FatalError(env, "dladdr() failed");
+        return JNI_ERR;
+    }
+    if (NULL == realpath((char *)dlinfo.dli_fname, buf)) {
+        (*env)->FatalError(env, "realpath() failed");
+        return JNI_ERR;
+    }
     p = strrchr(buf, '/');
+    if (NULL == p) {
+        fprintf(stderr, "realpath() is not absolute: %s\n", buf);
+        fflush(stderr);
+        p = buf;
+    } else {
+        /* point after the slash */
+        p += 1;
+    }
+    len = p - buf;
 
     /*
      * The code below is responsible for:
