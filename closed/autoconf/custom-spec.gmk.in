@@ -121,3 +121,11 @@ ifeq (true,$(OPENJ9_ENABLE_CMAKE))
 else
   OPENJ9_VM_BUILD_DIR := $(OUTPUTDIR)/vm
 endif
+
+# The shared class cache doesn't work on Windows Subsystem for Linux.
+# Configure will recognize the target as 'linux', but 'uname -r' mentions Microsoft.
+ifeq ($(OPENJDK_TARGET_OS), linux)
+  ifneq (,$(findstring Microsoft, $(shell uname -r)))
+    JAVA_FLAGS := $(filter-out -Xshare:auto, $(JAVA_FLAGS)) -Xshareclasses:none
+  endif
+endif
