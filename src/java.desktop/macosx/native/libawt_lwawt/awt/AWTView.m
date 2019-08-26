@@ -23,6 +23,12 @@
  * questions.
  */
 
+/*
+ * ===========================================================================
+ * (c) Copyright IBM Corp. 2019, 2019 All Rights Reserved
+ * ===========================================================================
+ */
+
 #import "jni_util.h"
 #import "CGLGraphicsConfig.h"
 #import "AWTView.h"
@@ -1142,6 +1148,10 @@ JNF_CLASS_CACHE(jc_CInputMethod, "sun/lwawt/macosx/CInputMethod");
 #ifdef IM_DEBUG
     fprintf(stderr, "AWTView InputMethod Selector Called : [attributedSubstringFromRange] location=%lu, length=%lu\n", (unsigned long)theRange.location, (unsigned long)theRange.length);
 #endif // IM_DEBUG
+
+    if (!fInputMethodLOCKABLE) {
+        return nil;
+    }
 
     static JNF_MEMBER_CACHE(jm_substringFromRange, jc_CInputMethod, "attributedSubstringFromRange", "(II)Ljava/lang/String;");
     JNIEnv *env = [ThreadUtilities getJNIEnv];
