@@ -237,7 +237,7 @@ final class NativeGaloisCounterMode extends FeedbackCipher {
         } else {
             aadBuffer.reset();
         }
- 
+
         if (decrypting) {
             ibuffer = new ByteArrayOutputStream();
         }
@@ -424,7 +424,6 @@ final class NativeGaloisCounterMode extends FeedbackCipher {
         // scenario for the subsequent output buffer capacity check.
         checkDataLength(ibuffer.size(), (len - tagLenBytes));
 
-
         if (out.length - outOfs < ((ibuffer.size() + len) - tagLenBytes)) {
             throw new ShortBufferException("Output buffer too small");
         }
@@ -455,7 +454,6 @@ final class NativeGaloisCounterMode extends FeedbackCipher {
         } else if (ret == -1) {
             throw new ProviderException("Error in Native GaloisCounterMode");
         }
-
 
         return ret;
     }

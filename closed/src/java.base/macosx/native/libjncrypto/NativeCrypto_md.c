@@ -32,7 +32,7 @@
 /* Load the crypto library (return NULL on error) */
 void * load_crypto_library() {
     void * result = NULL;
-    
+
     const char *libname = "libcrypto.1.1.dylib";
     const char *oldname = "libcrypto.1.0.0.dylib";
     const char *symlink = "libcrypto.dylib";

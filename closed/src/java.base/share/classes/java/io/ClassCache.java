@@ -1,13 +1,13 @@
 /*
-* ===========================================================================
-* (c) Copyright IBM Corp. 2017, 2019 All Rights Reserved
-* ===========================================================================
- * 
+ * ===========================================================================
+ * (c) Copyright IBM Corp. 2017, 2019 All Rights Reserved
+ * ===========================================================================
+ *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  
+ * published by the Free Software Foundation.
  *
- * IBM designates this particular file as subject to the "Classpath" exception 
+ * IBM designates this particular file as subject to the "Classpath" exception
  * as provided by IBM in the LICENSE file that accompanied this code.
  *
  * This code is distributed in the hope that it will be useful, but WITHOUT
@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License version
  * 2 along with this work; if not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * ===========================================================================
 */
 
@@ -30,35 +30,35 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-/* ClassCache is Primarily responsible for Caching the results of the className lookups and hence to avoid 
+/* ClassCache is Primarily responsible for Caching the results of the className lookups and hence to avoid
  * multiple Lookup for same Class Instance.
  * ClassCache provides a ConcurrentHash based ClassCache which is looked up prior to calling the class.forName
- *  Method resolveClass() from ObjectInputStream uses this Cache.
- *  
- *  Caching is done only when the actually used loader for a Class is one of the Sytem loaders (ie) App Class Loader,
- *  System Extension loader and BootStrap loader
- *   
+ * Method resolveClass() from ObjectInputStream uses this Cache.
+ *
+ * Caching is done only when the actually used loader for a Class is one of the Sytem loaders (ie) App Class Loader,
+ * System Extension loader and BootStrap loader
+ *
  */
 final class ClassCache {
-/* Main Cache for storing the Class.forName results Here Key used would be CacheKey */
+	/* Main Cache for storing the Class.forName results Here Key used would be CacheKey */
     private final ConcurrentHashMap<Key,Object> cache =
-        new ConcurrentHashMap<Key,Object>(); 
-/* Initiating Loader to CacheKey mapping in the Cache used by Reaper thread for removal on stale Loaders */
+        new ConcurrentHashMap<Key,Object>();
+    /* Initiating Loader to CacheKey mapping in the Cache used by Reaper thread for removal on stale Loaders */
     private final ConcurrentHashMap<LoaderRef,CacheKey> loaderKeys =
         new ConcurrentHashMap<LoaderRef,CacheKey>();
- /* Keeps a link of Actual System Loader used to Initiating Loader mapping */
+    /* Keeps a link of Actual System Loader used to Initiating Loader mapping */
     private final ConcurrentHashMap<LoaderRef,LoaderRef> canonicalLoaderRefs =
         new ConcurrentHashMap<LoaderRef,LoaderRef>();
- /* Reference Queue registered for notification on stale Loaders */
+    /* Reference Queue registered for notification on stale Loaders */
     private final ReferenceQueue<Object> staleLoaderRefs =
         new ReferenceQueue<Object>();
-/*
- * Constructor Populates Canonical Loader Refs with System Loader Entries and initializes the reaper thread which
- * monitors the ReferenceQueue for stale loaders
- */
-    
+
+    /*
+     * Constructor Populates Canonical Loader Refs with System Loader Entries and initializes the reaper thread which
+     * monitors the ReferenceQueue for stale loaders
+     */
     public ClassCache() {
-        ClassLoader loader = ClassLoader.getSystemClassLoader(); 
+        ClassLoader loader = ClassLoader.getSystemClassLoader();
         while (loader != null) {
             setCanonicalSystemLoaderRef(loader);
             loader = loader.getParent();
@@ -67,20 +67,18 @@ final class ClassCache {
         AccessController.doPrivileged(
                 new CreateReaperAction(this, staleLoaderRefs)).start();
     }
+
     /*
      * sets Canonical Loader reference for the loader
      */
-
     private void setCanonicalSystemLoaderRef(ClassLoader loader) {
         LoaderRef newKey = new LoaderRef(loader, staleLoaderRefs, true);
         assert (canonicalLoaderRefs.put(newKey, newKey) == null);
     }
-    
+
     /*
      * get Canonical Loader reference for the loader
      */
-
-
     LoaderRef getCanonicalLoaderRef(Object loaderObj) {
         LoaderRef newKey = new LoaderRef(loaderObj, staleLoaderRefs);
 
@@ -95,9 +93,10 @@ final class ClassCache {
         newKey.clear();
         return key;
     }
-/*
- * Remove unused LoaderKey, and initiates corresponding CacheKey entry the main Cache
- */
+
+    /*
+     * Remove unused LoaderKey, and initiates corresponding CacheKey entry the main Cache
+     */
     void removeStaleRef(LoaderRef loaderRef) {
         canonicalLoaderRefs.remove(loaderRef);
         CacheKey key = loaderKeys.remove(loaderRef);
@@ -107,11 +106,11 @@ final class ClassCache {
         }
     }
 
-/*
- * Identifies if the loader used to load is one of the system loaders, 
- * if so updates the cache and the LoaderKey, and also a StaleLoaderReference for the initiating LoaderObject
- * via LoaderRef Constructor
- */
+    /*
+     * Identifies if the loader used to load is one of the system loaders,
+     * if so updates the cache and the LoaderKey, and also a StaleLoaderReference for the initiating LoaderObject
+     * via LoaderRef Constructor
+     */
     void update(CacheKey key, Class<?> result) {
         Object resultLoaderObj =
             LoaderRef.getLoaderObj(result.getClassLoader());
@@ -136,18 +135,20 @@ final class ClassCache {
             }
         }
     }
-/*
- * Creates a New Entry in the Cache 
- */
+
+    /*
+     * Creates a New Entry in the Cache
+     */
     private Object createEntry(CacheKey key) {
         FutureValue newValue = new FutureValue(key, this); //Does actual call to class.forName as required.
         Object value = cache.putIfAbsent(key, newValue);
         if (value == null) value = newValue;
         return value;
     }
-/*
- * This is the entry point in to the cache from ObjectInputStream. First Lookup is done based on the className and Loader 
- */
+
+    /*
+     * This is the entry point in to the cache from ObjectInputStream. First Lookup is done based on the className and Loader
+     */
     public Class<?> get(String className, ClassLoader loader)
         throws ClassNotFoundException {
         LookupKey key = new LookupKey(className, loader, this);
@@ -157,17 +158,16 @@ final class ClassCache {
         }
 
         if (value instanceof FutureValue) {
-        	
+
             return ((FutureValue)value).get();
         }
 
         return (Class<?>)value;
     }
-    
+
     /*
      * FutureValue implements Future Mechanics that is required for addressing  contention issues in the HashMap
      */
-
     private static final class FutureValue {
         private final CacheKey key;
         private final LoaderRef loaderRef;
@@ -246,21 +246,20 @@ final class ClassCache {
             cache.removeStaleRef(staleRef);
         }
     }
-    
+
     /*
      * The use of the loaderRefs map is to  allow efficient processing
-     *  of one Weak Reference for each stale ClassLoader, rather than one WR for each entry in the cache. 
-     *   
+     *  of one Weak Reference for each stale ClassLoader, rather than one WR for each entry in the cache.
+     *
      * CacheKey as well as Lookup Key will be refering to this LoaderRef.
      *
      * Initiating Class Loaders needs to be referred for both lookup and Caching,so for performance reasons
      * a LoaderRef is maintained which would be used by both LookupKey and CachingKey
      * (ie) LookupKey will actually store the LoaderObj, but it will be canonically refered via a loaderRed
      * by the caching Key
-     * LoaderKey has LoaderRef Objects as well and is used to Link the Initiating Loader with the actual cache Entries 
+     * LoaderKey has LoaderRef Objects as well and is used to Link the Initiating Loader with the actual cache Entries
      * which is used to remove Stale reference entries.
      */
-
     private static class LoaderRef extends WeakReference<Object> {
         private static final String NULL_LOADER = new String("");
         private final int hashcode;
@@ -278,11 +277,10 @@ final class ClassCache {
                 boolean isSystem) {
             this(isSystem, getLoaderObj(loader), queue);
         }
-        
-        /*
-         * Creates a new weak reference that refers to the given object and is registered with the given queue. 
-         */
 
+        /*
+         * Creates a new weak reference that refers to the given object and is registered with the given queue.
+         */
         private LoaderRef(boolean isSystem, Object loaderObj,
                 ReferenceQueue<Object> queue) {
             super(loaderObj, queue);
@@ -310,15 +308,15 @@ final class ClassCache {
             return ((loaderObj == NULL_LOADER) ? null : (ClassLoader)loaderObj);
         }
     }
+
     /*
      * For better clarity and to avoid multiple lookups to the cache. Key is implemented to have
      * one abstract key to final sub classes which serve specific purpose
-     * LookupKey - This is a short lived key, not part of any hashmap and stores the strong reference to 
+     * LookupKey - This is a short lived key, not part of any hashmap and stores the strong reference to
      * loaderobject
-     * CachingKey - uses the same hash as LookupKey and has a means to be generated from LookupKey and has reference 
+     * CachingKey - uses the same hash as LookupKey and has a means to be generated from LookupKey and has reference
      * to the Loaderobj via a weakreference.
      */
-
     private static abstract class Key {
         public final String className;
         protected final int hashcode;
@@ -344,11 +342,11 @@ final class ClassCache {
             return hashcode;
         }
     }
+
     /*
-     * Lookup Key hash code is framed using loadername hash + loader's system identity hashcode.  This 
+     * Lookup Key hash code is framed using loadername hash + loader's system identity hashcode.  This
      * is same as the hashcode maintained in CacheKey
      */
-
     private static final class LookupKey extends Key {
         private final Object loaderObj;
         private final ClassCache cache;
@@ -381,9 +379,8 @@ final class ClassCache {
     }
 
     /*
-     * CacheKey is the actual key that is stored in the cache, and it stores the weakreference 
+     * CacheKey is the actual key that is stored in the cache, and it stores the weakreference
      * of the Initiating loader object via loaderRef
-     * 
      */
     private static final class CacheKey extends Key {
         public final LoaderRef loaderRef;

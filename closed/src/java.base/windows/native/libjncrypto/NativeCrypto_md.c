@@ -33,7 +33,7 @@ void * load_crypto_library() {
     const char *oldname = "libeay32.dll";
 
     result = LoadLibrary(libname);
-    
+
     if (result == NULL) {
         result = LoadLibrary(oldname);
     }

@@ -33,7 +33,7 @@
 void * load_crypto_library() {
     void * result = NULL;
     size_t i = 0;
-    
+
     // Library names for OpenSSL 1.1.1, 1.1.0, 1.0.2 and symbolic links
     static const char * const libNames[] = {
         "libcrypto.so.1.1",   // 1.1.x library name

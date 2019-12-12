@@ -28,7 +28,6 @@
  * ===========================================================================
  */
 
-
 package sun.security.provider;
 
 import java.security.MessageDigestSpi;
@@ -67,11 +66,11 @@ abstract class NativeDigest extends MessageDigestSpi implements Cloneable {
 
     private static final class DigestCleanerRunnable implements Runnable {
         private final long digestCtx;
-        
+
         public DigestCleanerRunnable(long context) {
             this.digestCtx = context;
         }
-        
+
         @Override
         public void run() {
             nativeCrypto.DigestDestroyContext(digestCtx);
