@@ -112,12 +112,12 @@ ifeq ($(OPENJDK_BUILD_OS), macosx)
   LDFLAGS_JDKEXE += -pagezero_size 0x1000
 endif
 
-# Usage: $(call CodesignFile, files ...)
+# Usage: $(call CodesignFile,file)
 ifeq (,$(CODESIGN))
   CodesignFile =
 else
   CodesignFile = $(CODESIGN) --sign "$(MACOSX_CODESIGN_IDENTITY)" \
-	--entitlements $(TOPDIR)/make/data/macosxsigning/default.plist \
+	--entitlements $(firstword $(wildcard $(patsubst %,$(TOPDIR)/make/data/macosxsigning/%.plist,$(notdir $1) default))) \
 	--options runtime \
 	--timestamp \
 	$1
