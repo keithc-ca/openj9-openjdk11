@@ -200,10 +200,12 @@ ifneq ($(OPENJDK_TARGET_OS), windows)
     ifneq ($(findstring $(OPENJDK_TARGET_OS), linux macosx), )
       $(JRE_IMAGE_DIR)/man/ja:
 	$(call LogInfo, Creating $(patsubst $(OUTPUTDIR)/%,%,$@))
+	$(call MakeTargetDir)
 	$(CD) $(@D) && $(RM) ja && $(LN) -s ja_JP.UTF-8 ja
 
       $(JDK_IMAGE_DIR)/man/ja:
 	$(call LogInfo, Creating $(patsubst $(OUTPUTDIR)/%,%,$@))
+	$(call MakeTargetDir)
 	$(CD) $(@D) && $(RM) ja && $(LN) -s ja_JP.UTF-8 ja
     endif
 
