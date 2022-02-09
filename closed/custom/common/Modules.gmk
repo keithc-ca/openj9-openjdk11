@@ -37,13 +37,13 @@ ifeq (,$(HEALTHCENTER_JAR))
 else
   PLATFORM_MODULES += \
 	ibm.healthcenter \
-	jdk.attach \
-	jdk.internal.jvmstat
+	jdk.attach
 endif
 
 MODULES_FILTER += \
 	jdk.aot \
 	jdk.hotspot.agent \
+	jdk.internal.jvmstat \
 	jdk.internal.vm.ci \
 	jdk.internal.vm.compiler \
 	jdk.internal.vm.compiler.management \

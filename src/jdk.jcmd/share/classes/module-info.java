@@ -23,6 +23,12 @@
  * questions.
  */
 
+/*
+ * ===========================================================================
+ * (c) Copyright IBM Corp. 2022, 2022 All Rights Reserved
+ * ===========================================================================
+ */
+
 /**
  * Defines tools for diagnostics and troubleshooting a JVM
  * such as the <em>{@index jcmd jcmd tool}</em>, <em>{@index jps jps tool}</em>,
@@ -44,5 +50,4 @@
  */
 module jdk.jcmd {
     requires jdk.attach;
-    requires jdk.internal.jvmstat;
 }
