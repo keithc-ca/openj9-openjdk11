@@ -23,6 +23,10 @@
 # questions.
 #
 
+# ===========================================================================
+# (c) Copyright IBM Corp. 2022, 2022 All Rights Reserved
+# ===========================================================================
+
 include CopyCommon.gmk
 include Modules.gmk
 include TextFileProcessing.gmk
@@ -122,6 +126,7 @@ $(JVMCFG): $(call DependOnVariable, ORDERED_CFG_VARIANTS)
 	    $(call print-cfg-line,$v,IGNORE) \
 	  ) \
 	)
+	$(call EncodeAscii2Native,$@)
 
 TARGETS += $(JVMCFG)
 
@@ -137,6 +142,7 @@ $(POLICY_DST): $(POLICY_SRC_LIST)
 	$(RM) $@ $@.tmp
 	$(foreach f,$(POLICY_SRC_LIST),$(CAT) $(f) >> $@.tmp;)
 	$(MV) $@.tmp $@
+	$(call EncodeAscii2Native,$@)
 
 TARGETS += $(POLICY_DST)
 
@@ -162,6 +168,7 @@ $(DEF_POLICY_DST): $(DEF_POLICY_SRC_LIST)
 	$(RM) $@ $@.tmp
 	$(foreach f,$(DEF_POLICY_SRC_LIST),$(CAT) $(f) >> $@.tmp;)
 	$(MV) $@.tmp $@
+	$(call EncodeAscii2Native,$@)
 
 TARGETS += $(DEF_POLICY_DST)
 

@@ -23,6 +23,10 @@
 # questions.
 #
 
+# ===========================================================================
+# (c) Copyright IBM Corp. 2022, 2022 All Rights Reserved
+# ===========================================================================
+
 ifeq (,$(_MAKEBASE_GMK))
   $(error You must include MakeBase.gmk prior to including TextFileProcessing.gmk)
 endif
@@ -42,6 +46,7 @@ define SetupSingleTextFileForProcessing
 	$$($1_REPLACEMENTS_COMMAND_LINE) < '$$@.includes.tmp' > '$$@.replacements.tmp' ; \
 	$(RM) '$$@.includes.tmp' ; \
 	$(MV) '$$@.replacements.tmp' '$$@'
+	$$(call EncodeAscii2Native,'$$@')
 
   $1 += $(strip $3)/$(strip $4)
 endef
