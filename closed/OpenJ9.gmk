@@ -514,7 +514,9 @@ build-j9 : run-preprocessors-j9
 	$(call ShowVersions)
   ifeq (windows,$(OPENJDK_TARGET_OS))
 	@$(ECHO) "==== JAVA ===="
-	@-which env | grep "^PATH="
+	@-which java
+	@$(ECHO) "==== JAVA wrapper ===="
+	@-cat $(OUTPUTDIR)/tools/java
 	@$(ECHO) "==== PATH ===="
 	@env | grep "^PATH="
 	@$(ECHO) "==== MAKE ===="
