@@ -512,6 +512,15 @@ endif # OPENJ9_ENABLE_DDR
 build-j9 : run-preprocessors-j9
 	@$(ECHO) "Compiling OpenJ9 in $(OUTPUTDIR)/vm"
 	$(call ShowVersions)
+  ifeq (windows,$(OPENJDK_TARGET_OS))
+	@$(ECHO) "==== JAVA ===="
+	@-which env | grep "^PATH="
+	@$(ECHO) "==== PATH ===="
+	@env | grep "^PATH="
+	@$(ECHO) "==== MAKE ===="
+	@$(ECHO) "OPENJ9_BUILD=true $(EXPORT_COMPILER_ENV_VARS) $(CUSTOM_COMPILER_ENV_VARS) (MAKE) $(MAKE_ARGS) -C $(OUTPUTDIR)/vm all"
+	@$(ECHO) "=============="
+  endif
 	+OPENJ9_BUILD=true $(EXPORT_COMPILER_ENV_VARS) $(CUSTOM_COMPILER_ENV_VARS) \
 		$(MAKE) $(MAKE_ARGS) -C $(OUTPUTDIR)/vm all
 	@$(ECHO) OpenJ9 compile complete
