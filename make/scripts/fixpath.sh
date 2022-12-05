@@ -150,13 +150,15 @@ function import_path() {
   fi
 
   if [[ "$path" != "" ]]; then
-    # Now turn it into a windows path
-    winpath="$($PATHTOOL -w "$path" 2>/dev/null)"
-    # If it fails, try again with an added .exe (needed on WSL)
-    if [[ $? -ne 0 ]]; then
-      winpath="$($PATHTOOL -w "$path.exe" 2>/dev/null)"
+    # Store current unix path
+    unixpath="$path"
+    # If $unixpath does not exist, add .exe (needed on WSL)
+    if [[ ! -e "$unixpath" ]]; then
+      unixpath="$unixpath.exe"
     fi
-    if [[ $? -eq 0 ]]; then
+    # Now turn it into a windows path
+    winpath="$($PATHTOOL -w "$unixpath" 2>/dev/null)"
+    if [[ $? -eq 0 && -e "$unixpath" ]]; then
       if [[ ! "$winpath" =~ ^"$ENVROOT"\\.*$ ]] ; then
         # If it is not in envroot, it's a generic windows path
         if [[ ! $winpath =~ ^[-_.:\\a-zA-Z0-9]*$ ]] ; then
@@ -164,11 +166,11 @@ function import_path() {
           # This monster of a command uses the %~s support from cmd.exe to
           # reliably convert to short paths on all winenvs.
           shortpath="$($CMD /q /c for %I in \( "$winpath" \) do echo %~sI 2>/dev/null | tr -d \\n\\r)"
-          path="$($PATHTOOL -u "$shortpath")"
-          # Path is now unix style, based on short name
+          unixpath="$($PATHTOOL -u "$shortpath")"
+          # unixpath is based on short name
         fi
         # Make it lower case
-        path="$(echo "$path" | tr [:upper:] [:lower:])"
+        path="$(echo "$unixpath" | tr '[:upper:]' '[:lower:]')"
       fi
     else
       # On WSL1, PATHTOOL will fail for files in envroot. If the unix path
@@ -356,7 +358,22 @@ function convert_path() {
   fi
 }
 
-# Treat $1 as name of a file containg paths. Convert those paths to Windows style,
+# Treat $1 as name of a file containing paths. Convert those paths to Windows style,
+# and output them to the file specified by $2.
+# If the output file already exists, it is overwritten.
+function convert_file() {
+  infile="$1"
+  outfile="$2"
+  if [[ -e $outfile ]] ; then
+    rm $outfile
+  fi
+  while read line; do
+    convert_path "$line"
+    echo "$result" >> $outfile
+  done < $infile
+}
+
+# Treat $1 as name of a file containing paths. Convert those paths to Windows style,
 # in a new temporary file, and return a string "@<temp file>" pointing to that
 # new file.
 function convert_at_file() {
@@ -502,6 +519,8 @@ if [[ "$ACTION" == "import" ]] ; then
 elif [[ "$ACTION" == "print" ]] ; then
   print_command_line "$@"
   echo "$result"
+elif [[ "$ACTION" == "convert" ]] ; then
+  convert_file "$@"
 elif [[ "$ACTION" == "exec" ]] ; then
   exec_command_line "$@"
   # Propagate exit code

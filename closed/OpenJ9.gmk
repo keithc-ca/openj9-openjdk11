@@ -445,6 +445,8 @@ ifeq (true,$(OPENJ9_ENABLE_CMAKE))
 
 $(OUTPUTDIR)/vm/cmake.stamp :
 	@$(MKDIR) -p $(@D)
+	which cmake
+	$(CMAKE) --version
 	cd $(@D) && $(EXPORT_COMPILER_ENV_VARS) $(CMAKE) $(CMAKE_ARGS) $(OPENJ9_TOPDIR)
 	$(TOUCH) $@
 
