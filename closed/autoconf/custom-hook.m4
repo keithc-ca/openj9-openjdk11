@@ -815,14 +815,16 @@ AC_DEFUN([CONFIGURE_OPENSSL],
   AC_SUBST(OPENSSL_CFLAGS)
 ])
 
-# Create a tool wrapper for use by cmake.
-# Consists of a shell script which wraps commands with an invocation of fixpath.
-# OPENJ9_GENERATE_TOOL_WRAPPER(<name_of_wrapper>, <command_to_call>)
+# Create a shell script for use by cmake, which delegates commands to a wrapper script.
+# OPENJ9_GENERATE_TOOL_WRAPPER(<name_of_output>, <command_to_call>)
+#
+# Notes:
+#   - the command to be invoked is not quoted as it will contain spaces,
+#     and may contain options like '-stc:c11'
+#   - $ and @ are separated so m4 won't see a variable reference ($@)
 AC_DEFUN([OPENJ9_GENERATE_TOOL_WRAPPER],
 [
   tool_file="$OPENJ9_TOOL_DIR/$1"
-
-  # Separate $ and @ so m4 won't see a variable reference.
   printf '#!/bin/sh\n%s "$''@"\n' "$2" > $tool_file
   chmod +x $tool_file
 ])
